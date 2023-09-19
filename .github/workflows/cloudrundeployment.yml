@@ -1,0 +1,32 @@
+name: Deploy Cloud Run service
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Cloud Run service
+        run: docker build -t my-service .
+
+      - name: Push Cloud Run service image
+        run: docker push my-service
+
+  deploy:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: google-github-actions/auth@v0.7.1
+        with:
+          workload_identity_provider: my-github-provider
+          service_account: my-service-account
+
+      - name: Deploy Cloud Run service
+        run: gcloud run deploy my-service --image my-service
